@@ -1,0 +1,142 @@
+body {
+    text-align: center;
+    background-color: #242324;
+    color: #ffffff;
+    font-family: sans-serif;
+}
+
+h1 {
+    font-size: 180%;
+    line-height: 1.25;
+    margin: 0 0 1rem 0;
+    cursor: default;
+    color: #ffe6c0;
+}
+
+p {
+    margin: 0 0 0.5rem 0;
+}
+
+textarea {
+    vertical-align: baseline;
+    font-family: inherit;
+    line-height: 1.2;
+    font-size: 105%;
+    max-width: 100%;
+    background: #8e8e8e;
+    border-radius: 4px;
+    padding: .5rem;
+    border: none;
+    box-shadow: inset 0px 4px 1px -2px #000, inset 0px -4px 1px -2px #c5c5c5, inset 2px 0px 1px 0px #5f5f5f, inset -2px 0px 1px 0px #5f5f5f, inset 0px -2px 2px 0px #5f5f5f, 0px 0px 4px 1px #2e2521;
+}
+
+textarea:focus {
+    outline: none;
+    background: #f0dab4;
+    box-shadow: inset 0px 4px 2px -2px #000, inset 0px -1px 1px 0px #74624b, inset 0px -4px 2px -2px #e0e0e0, inset 2px 0px 2px 0px #a6885c, inset -2px 0px 2px 0px #a6885c, 0px 0px 4px 1px #2e2521;
+}
+
+textarea::placeholder {
+    color: #5b5b5b;
+}
+
+pre {
+    border: solid 1px black;
+    position: relative;
+    padding: 1rem;
+    text-align: left;
+    margin: 0;
+}
+
+pre button {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: #5eb663;
+    padding: 0.5rem 0.75rem 0.5rem 0.75rem;
+    color: #000;
+    font-weight: 600;
+    border: none;
+    box-shadow: inset 8px 0px 4px -8px #000, inset -8px 0px 4px -8px #000, inset 0px 10px 2px -8px #95df99, inset 0px 10px 2px -8px #163218, inset 0px -9px 2px -8px #000, 0px 0px 4px 0px #000;
+    cursor: pointer;
+    user-select: none;
+    outline: 0;
+}
+
+pre button:hover,
+pre button:focus {
+    background-color: #92e897;
+    filter: drop-shadow(0 0 2px #34be3c);
+    box-shadow: inset 8px 0px 4px -8px #000, inset -8px 0px 4px -8px #000, inset 0px 9px 2px -8px #cdf1cf, inset 0px 8px 4px -8px #000, inset 0px -8px 4px -8px #000, inset 0px -9px 2px -8px #432400, 0px 0px 4px 0px #000, inset 0px 0px 4px 2px #34be3c;
+}
+
+pre button:active {
+    box-shadow: inset 0px 10px 2px -8px #000, inset 0px 9px 2px -8px #000, inset 8px 0px 4px -8px #3f5024, inset 8px 0px 4px -8px #3f5024, inset -8px 0px 4px -8px #3f5024, inset -8px 0px 4px -8px #3f5024, inset 0px 9px 2px -8px #3f5024, inset 0px -9px 2px -8px #3f5024, inset 0px -8.5px 0px -8px #3f5024, 0px 0px 4px 0px #000;
+    background-color: #cfdf93;
+    filter: none;
+}
+
+body>div {
+    display: inline-block;
+    padding: .75rem;
+}
+
+#result {
+    display: inline-grid;
+    grid-template-columns: repeat(2, 1fr);
+    justify-content: center;
+    gap: .75rem;
+    padding: .75rem;
+}
+
+@media (max-width: 75rem) {
+    #result {
+        display: block;
+    }
+  }
+
+#result.invalid {
+    display: none;
+}
+
+.error {
+    color: red;
+}
+
+.warn {
+    color: #ffeb3b;
+    font-weight: bold;
+}
+
+.panel {
+    border-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAMAAAAMs7fIAAABhWlDQ1BJQ0MgcHJvZmlsZQAAKJF9kT1Iw1AUhU9bpSIVETuICAasulgQFXHUKhShQqgVWnUweekfNGlIUlwcBdeCgz+LVQcXZ10dXAVB8AfE0clJ0UVKvC8ptIjxwuN9nHfP4b37AH+txFSzbRxQNctIxmNCOrMqBF/hwyB6MIohiZn6nCgm4Flf99RNdRflWd59f1aXkjUZ4BOIZ5luWMQbxNObls55nzjMCpJCfE48ZtAFiR+5Lrv8xjnvsJ9nho1Ucp44TCzkW1huYVYwVOIp4oiiapTvT7uscN7irJYqrHFP/sJQVltZ5jqtAcSxiCWIECCjgiJKsBClXSPFRJLOYx7+fscvkksmVxGMHAsoQ4Xk+MH/4PdszdzkhJsUigHtL7b9MQwEd4F61ba/j227fgIEnoErrekv14CZT9KrTS1yBHRvAxfXTU3eAy53gL4nXTIkRwrQ8udywPsZfVMG6L0FOtfcuTXOcfoApGhWiRvg4BAYyVP2use7O1rn9m9PY34/opByuh0Yaa8AAAAJcEhZcwAALiMAAC4jAXilP3YAAAAHdElNRQfmAgIQJSQU1l6SAAAAGXRFWHRDb21tZW50AENyZWF0ZWQgd2l0aCBHSU1QV4EOFwAAALpQTFRFZGJhY2BgYF1cXVpZXFpZXFpYW1hXWlVSV1JQT01MT0xLT0pJTUdETUZDSEJBPDk4PDg3PzYzPzYxOzc2OzYzNi8sMTAxMTAwMS8wMS8vMS4vMC4uMC0tMCwsMCwrMCsqLyooMSYhLCclLCYlLiUhLCUkKCEfJSIhJyEeJSEhJyAdJCEfJCAeJx0aIx0bIxwZIxsYIxoXIBoXHhYUFQ8NEw4NDw4NEQ0MEA0MDw0NDAkHBQQDAwICAAAAeCdZ2wAAAAFiS0dECfHZpewAAACCSURBVHhebY9LDsMwCAXh+RdUiCPl/lc1EXa8aNWRjR6zAWANTBtGM5RSS8kpyDOjR62LMB16N5HXiLRbkeulaqarXDXDx/CxiQY03H25GQhORL6JDPrlj4mFeTPXJkREMAOBgdVPN98hqvp5vxwAJ9HTemCnSmLEgbktcpwMfM8HHrGVLy5TM6g2AAAAAElFTkSuQmCC") 8/4px repeat;
+    background-color: #313031;
+}
+
+.panel.inset {
+    border-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAAAhCAMAAABgOjJdAAABhWlDQ1BJQ0MgcHJvZmlsZQAAKJF9kTtIw1AUhv+miiIVBzuICEaoThbEF45ahSJUCLVCqw4mN31Bk4YkxcVRcC04+FisOrg46+rgKgiCDxBHJydFFynx3KTQIsYDl/vx3/P/3HsuINRKTLPaxgBNt81kPCamM6tixysCGEQIQ5iSmWXMSVICvvV1T91Ud1Ge5d/3Z3WrWYsBAZF4lhmmTbxBPL1pG5z3icOsIKvE58SjJl2Q+JHrisdvnPMuCzwzbKaS88RhYjHfwkoLs4KpEU8SR1RNp3wh7bHKeYuzVqqwxj35C0NZfWWZ67QGEMciliBBhIIKiijBRpR2nRQLSTqP+fj7Xb9ELoVcRTByLKAMDbLrB/+D37O1chPjXlIoBrS/OM7HMNCxC9SrjvN97Dj1EyD4DFzpTX+5Bsx8kl5tapEjoGcbuLhuasoecLkD9D0Zsim7UpCWkMsB72f0TRmg9xboWvPm1jjH6QOQolklboCDQ2AkT9nrPu/ubJ3bvz2N+f0As9tywbHNoQUAAAAJcEhZcwAALiMAAC4jAXilP3YAAAAHdElNRQfmAgMLNBNXffN5AAAAGXRFWHRDb21tZW50AENyZWF0ZWQgd2l0aCBHSU1QV4EOFwAAAQtQTFRFAAAAAAAAMTAAYQABMQABAAAA/9y6AAAAAAAA/7F+SjAAMRgAMQABGQABAAAA/9nH/9m0MQ8AIQ8AAAAAAAAA/8GqGQsAAAAAAAAAAAAAOxwAMRMAJwkAFAkAMQ8AKQ8AEQABAAAAAAAAAAAA/+/pBwYA//fq//HkAAAAJQsAAAAAIQoABQQA//nwIgkADwQAAAAA//XsAAAAAAAAAAAAHQsA//rzAAAAAAAAAAAACgIAAAAAAAAADAUABgIAAAAAAAAAAAAAGQcADwcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAcAAAAACgMAAAAAAAAAAAAACgIAAAAAAAAAAwIAAAAAdNLDhQAAAFh0Uk5TAAIFBQUFBwgJCgoKCwsMDg4QEBASFRUVGBkaGhoaHx8gICEiIyQlJiYqLi8vMjQ0NDY2Nzo+P0BBTE5PUVNTVFpcXmNjZG9wcXJzdHh5fYCChIuMl5utu+r6V5gAAAABYktHRFmasvQYAAABUklEQVR4nLXUyU7DMBAG4PHEaewsbWihUg9IIPH+T4QEEodKhZa0Wew0jo2SLlD74BM+WZpP8nj5TcA3yGWCdkXfCsTIFq3WvwIRYGqLA8BoyAg4jx9t8dEIMZBBUJ7P5itbrHf7QqhRIE4XD0tmC7n53B60HgSF+er+jtpCfX+td6CAAPIoW2YpM1pp3RsAEiBSJLIqN2Ur9FVESnbKnAShIaOtLaiQUvdD84gBMsaVLUhTdY3uBhFiHKaxsYWu5EEK3QMEyNmUpWgLVddV0XVHgEkY5mmSUFscK1FUoh1WiXia83RiC1nX+7LqFQAN0myWJOw/hL8P/1785+E/U/+9+O/W/z7cKF0F0CzOg7UDnt9WfdGUahRJ9v7iCKpen8r6JKKFigNHGNI3dNuqMVEkUtwRxAjaGn1KZUJg4nYKRzD1n2Q79egcbeJULgPP38MP9ZBIMci5WIsAAAAASUVORK5CYII=") 16/8px repeat;
+    border-image-outset: 4px;
+    box-shadow: none;
+}
+
+.panel.dark {
+    background-color: #242324;
+}
+
+.panel.light {
+    background-color: #414040;
+}
+
+svg {
+    height: 50px;
+    fill: #a6642a;
+    
+    position: absolute;
+    top: 0;
+    border: 0;
+    right: 0;
+}
+
+svg a {
+    color: #242324;
+}
