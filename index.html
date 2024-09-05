@@ -13,35 +13,8 @@
         import { parse } from "./exchangeString.mjs";
 
         document.addEventListener("DOMContentLoaded", () => {
-            document.getElementById("exchangeStr").addEventListener("input", async e => {
-                const str = e.target.value.trim();
-                const msgEl = document.getElementById("msg");
-                const resultEl = document.getElementById("result");
-
-                if (str === "") {
-                    msgEl.innerHTML = "";
-                    msgEl.classList.remove("error");
-                    resultEl.classList.add("invalid");
-                    return;
-                }
-
-                const settings = await parse(str);
-
-                if (settings.error) {
-                    msgEl.innerHTML = settings.error;
-                    msgEl.classList.add("error");
-                    resultEl.classList.add("invalid");
-                } else {
-                    const [major, minor, patch] = settings.version;
-                    const version = `Created in v${major}.${minor}.${patch}`;
-                    const msg = settings.warning ? `${version}<br><span class="warn">${settings.warning}</span>: <span>Settings may be incorrect</span>` : version; 
-                    msgEl.innerHTML = msg;
-                    msgEl.classList.remove("error");
-                    resultEl.classList.remove("invalid");
-                    document.getElementById("mapSettings").innerHTML = JSON.stringify(settings.mapSettings, null, 2);
-                    document.getElementById("mapGenSettings").innerHTML = JSON.stringify(settings.mapGenSettings, null, 2);
-                }
-            });
+            const exchangeStrEl = document.getElementById("exchangeStr");
+            exchangeStrEl.addEventListener("input", e => { parseString(e.target); });
             document.getElementById("result").addEventListener("click", async e => {
                 if (!e.target.matches(".copy")) {
                     return;
@@ -53,7 +26,39 @@
                     console.error(e);
                 }
             });
+
+            parseString(exchangeStrEl);
         });
+
+        async function parseString(el) {
+            const str = el.value.trim();
+            const msgEl = document.getElementById("msg");
+            const resultEl = document.getElementById("result");
+
+            if (str === "") {
+                msgEl.innerHTML = "";
+                msgEl.classList.remove("error");
+                resultEl.classList.add("invalid");
+                return;
+            }
+
+            const settings = await parse(str);
+
+            if (settings.error) {
+                msgEl.innerHTML = settings.error;
+                msgEl.classList.add("error");
+                resultEl.classList.add("invalid");
+            } else {
+                const [major, minor, patch] = settings.version;
+                const version = `Created in v${major}.${minor}.${patch}`;
+                const msg = settings.warning ? `${version}<br><span class="warn">${settings.warning}</span>: <span>Settings may be incorrect</span>` : version;
+                msgEl.innerHTML = msg;
+                msgEl.classList.remove("error");
+                resultEl.classList.remove("invalid");
+                document.getElementById("mapSettings").innerHTML = JSON.stringify(settings.mapSettings, null, 2);
+                document.getElementById("mapGenSettings").innerHTML = JSON.stringify(settings.mapGenSettings, null, 2);
+            }
+        }
     </script>
 </head>
 
