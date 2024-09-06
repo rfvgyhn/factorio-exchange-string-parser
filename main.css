@@ -18,11 +18,10 @@ p {
 }
 
 textarea {
-    vertical-align: baseline;
-    font-family: inherit;
+    font-family: monospace;
     line-height: 1.2;
-    font-size: 105%;
-    max-width: 100%;
+    font-size: smaller;
+    width: 52ch;
     background: #8e8e8e;
     border-radius: 4px;
     padding: .5rem;
