@@ -157,13 +157,35 @@ function read_bounding_box(parser) {
     };
 }
 
-function read_cliff_settings(parser) {
-    return {
-        name: read_string(parser),
-        cliff_elevation_0: read_float(parser),
-        cliff_elevation_interval: read_float(parser),
-        richness: read_float(parser),
+function read_cliff_settings(parser, atLeastV2) {
+    let settings = {
+        name: read_string(parser)
     };
+
+    if (atLeastV2)
+        settings._unknown = read_uint8(parser);
+
+    settings.cliff_elevation_0 = read_float(parser);
+    settings.cliff_elevation_interval = read_float(parser);
+    settings.richness = read_float(parser);
+    
+    if (atLeastV2)
+        settings.cliff_smoothing = read_float(parser)
+
+    return settings;
+}
+
+function read_territory_settings(parser) {
+    const units = read_array(parser, read_string);
+    const territory_index_expression = read_string(parser);
+    const territory_variation_expresion = read_string(parser);
+    const minimum_territory_size = read_uint32(parser);
+    return {
+        units: units,
+        territory_index_expression: territory_index_expression,
+        territory_variation_expresion: territory_variation_expresion,
+        minimum_territory_size: minimum_territory_size
+    }
 }
 
 function map_to_object(map) {
@@ -174,28 +196,51 @@ function map_to_object(map) {
     return obj;
 }
 
-function read_map_gen_settings(parser) {
-    return {
-        terrain_segmentation: read_float(parser),
-        water: read_float(parser),
-        autoplace_controls: map_to_object(read_dict(parser, read_string, read_frequency_size_richness)),
-        autoplace_settings: map_to_object(read_dict(parser, read_string, read_autoplace_setting)),
-        default_enable_all_autoplace_controls: read_bool(parser),
-        seed: read_uint32(parser),
-        width: read_uint32(parser),
-        height: read_uint32(parser),
-        area_to_generate_at_start: read_bounding_box(parser),
-        starting_area: read_float(parser),
-        peaceful_mode: read_bool(parser),
-        starting_points: read_array(parser, read_map_position),
-        property_expression_names: map_to_object(read_dict(parser, read_string, read_string)),
-        cliff_settings: read_cliff_settings(parser),
+function read_map_gen_settings(parser, atLeastV2) {
+    const terrain_segmentation = atLeastV2 ? 0 : read_float(parser);
+    const water = atLeastV2 ? 0 : read_float(parser);
+    const autoplace_controls = map_to_object(read_dict(parser, read_string, read_frequency_size_richness));
+    const autoplace_settings = map_to_object(read_dict(parser, read_string, read_autoplace_setting));
+    const default_enable_all_autoplace_controls = read_bool(parser);
+    const seed = read_uint32(parser);
+    const width = read_uint32(parser);
+    const height = read_uint32(parser);
+    const area_to_generate_at_start = read_bounding_box(parser);
+    const starting_area = read_float(parser);
+    const peaceful_mode = read_bool(parser);
+    const no_enemies_mode = atLeastV2 ? read_bool(parser) : false;
+    const starting_points = read_array(parser, read_map_position);
+    const property_expression_names = map_to_object(read_dict(parser, read_string, read_string));
+    const cliff_settings = read_cliff_settings(parser, atLeastV2);
+    const territory_settings = atLeastV2 ? read_optional(parser, read_territory_settings) : null;
+    let settings = {
+        autoplace_controls: autoplace_controls,
+        autoplace_settings: autoplace_settings,
+        default_enable_all_autoplace_controls: default_enable_all_autoplace_controls,
+        seed: seed,
+        width: width,
+        height: height,
+        area_to_generate_at_start: area_to_generate_at_start,
+        starting_area: starting_area,
+        peaceful_mode: peaceful_mode,
+        starting_points: starting_points,
+        property_expression_names: property_expression_names,
+        cliff_settings: cliff_settings,
     };
+    if (atLeastV2) {
+        settings.no_enemies_mode = no_enemies_mode;
+        settings._territory_settings = "Maybe broken? Let me know on Github if you can explain what territory_settings is";
+        if (territory_settings !== null)
+            settings.territory_settings = territory_settings;
+    } else {
+        settings.terrain_segmentation = terrain_segmentation;
+        settings.water = water;
+    }
+
+    return settings;
 }
 
 function read_pollution(parser) {
-    let enabled;
-
     return {
         enabled: read_optional(parser, read_bool),
         diffusion_ratio: read_optional(parser, read_double),
@@ -312,7 +357,13 @@ function read_path_finder(parser) {
     };
 }
 
-function read_difficulty_settings(parser) {
+function read_difficulty_settings(parser, atLeastV2) {
+    if (atLeastV2) {
+        return {
+            technology_price_multiplier: read_double(parser),
+            spoil_time_modifier: read_double(parser),
+        };
+    }
     return {
         recipe_difficulty: read_uint8(parser),
         technology_difficulty: read_uint8(parser),
@@ -321,8 +372,15 @@ function read_difficulty_settings(parser) {
     };
 }
 
-function read_map_settings(parser) {
+function read_asteroids_settings(parser) {
     return {
+        spawning_rate: read_optional(parser, read_double),
+        max_ray_portals_expanded_per_tick: read_optional(parser, read_uint32)
+    }
+}
+
+function read_map_settings(parser, atLeastV2) {
+    let settings = {
         pollution: read_pollution(parser),
         steering: read_steering(parser),
         enemy_evolution: read_enemy_evolution(parser),
@@ -330,8 +388,13 @@ function read_map_settings(parser) {
         unit_group: read_unit_group(parser),
         path_finder: read_path_finder(parser),
         max_failed_behavior_count: read_uint32(parser),
-        difficulty_settings: read_difficulty_settings(parser),
+        difficulty_settings: read_difficulty_settings(parser, atLeastV2)
     };
+
+    if (atLeastV2)
+        settings.asteroids = read_asteroids_settings(parser);
+
+    return settings;
 }
 
 async function decompress(buffer) {
@@ -372,11 +435,14 @@ export async function parse(exchangeStr) {
     }
 
     const parser = new Parser(buffer);
+    const version = read_version(parser);
+    const atLeastV2 = version >= [2, 0, 0, 0];
+
     const data = {
-        version: read_version(parser),
+        version: version,
         unknown: read_uint8(parser),
-        mapGenSettings: read_map_gen_settings(parser),
-        mapSettings: read_map_settings(parser),
+        mapGenSettings: read_map_gen_settings(parser, atLeastV2),
+        mapSettings: read_map_settings(parser, atLeastV2),
         checksum: read_uint32(parser),
     };
 
