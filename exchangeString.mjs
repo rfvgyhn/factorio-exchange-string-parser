@@ -413,8 +413,10 @@ function isValidChecksum(buffer) {
     const crcIndex = buffer.byteLength - 4;
     const data = new Uint8Array(buffer, 0, crcIndex);
     const actual = new DataView(buffer).getUint32(crcIndex, true);
-
-    return crc32(data) == actual;
+    // Convert signed checksum to unsigned as per https://github.com/SheetJS/js-crc32?tab=readme-ov-file#signed-integers
+    const expected = crc32(data) >>> 0;
+    
+    return expected == actual;
 }
 
 export async function parse(exchangeStr) {
