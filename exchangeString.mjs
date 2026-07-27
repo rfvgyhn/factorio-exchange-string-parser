@@ -115,6 +115,14 @@ function read_version(parser) {
     return [major, minor, patch, developer];
 }
 
+function version_at_least(version, expected) {
+    for (let i = 0; i < version.length; i++) {
+        if (version[i] !== expected[i])
+            return version[i] > expected[i];
+    }
+    return true;
+}
+
 function read_frequency_size_richness(parser) {
     return {
         frequency: read_float(parser),
@@ -142,7 +150,7 @@ function read_map_position(parser) {
         y = parser.last_position.y + y_diff;
     }
     parser.last_position.x = x;
-    parser.last_position.x = y;
+    parser.last_position.y = y;
     return { x, y };
 }
 
@@ -157,19 +165,19 @@ function read_bounding_box(parser) {
     };
 }
 
-function read_cliff_settings(parser, atLeastV2) {
+function read_cliff_settings(parser, atLeastV20) {
     let settings = {
         name: read_string(parser)
     };
 
-    if (atLeastV2)
-        settings._unknown = read_uint8(parser);
+    if (atLeastV20)
+        settings.control = read_string(parser);
 
     settings.cliff_elevation_0 = read_float(parser);
     settings.cliff_elevation_interval = read_float(parser);
     settings.richness = read_float(parser);
     
-    if (atLeastV2)
+    if (atLeastV20)
         settings.cliff_smoothing = read_float(parser)
 
     return settings;
@@ -178,12 +186,12 @@ function read_cliff_settings(parser, atLeastV2) {
 function read_territory_settings(parser) {
     const units = read_array(parser, read_string);
     const territory_index_expression = read_string(parser);
-    const territory_variation_expresion = read_string(parser);
+    const territory_variation_expression = read_string(parser);
     const minimum_territory_size = read_uint32(parser);
     return {
         units: units,
         territory_index_expression: territory_index_expression,
-        territory_variation_expresion: territory_variation_expresion,
+        territory_variation_expression: territory_variation_expression,
         minimum_territory_size: minimum_territory_size
     }
 }
@@ -196,9 +204,9 @@ function map_to_object(map) {
     return obj;
 }
 
-function read_map_gen_settings(parser, atLeastV2) {
-    const terrain_segmentation = atLeastV2 ? 0 : read_float(parser);
-    const water = atLeastV2 ? 0 : read_float(parser);
+function read_map_gen_settings(parser, atLeastV20) {
+    const terrain_segmentation = atLeastV20 ? 0 : read_float(parser);
+    const water = atLeastV20 ? 0 : read_float(parser);
     const autoplace_controls = map_to_object(read_dict(parser, read_string, read_frequency_size_richness));
     const autoplace_settings = map_to_object(read_dict(parser, read_string, read_autoplace_setting));
     const default_enable_all_autoplace_controls = read_bool(parser);
@@ -208,11 +216,11 @@ function read_map_gen_settings(parser, atLeastV2) {
     const area_to_generate_at_start = read_bounding_box(parser);
     const starting_area = read_float(parser);
     const peaceful_mode = read_bool(parser);
-    const no_enemies_mode = atLeastV2 ? read_bool(parser) : false;
+    const no_enemies_mode = atLeastV20 ? read_bool(parser) : false;
     const starting_points = read_array(parser, read_map_position);
     const property_expression_names = map_to_object(read_dict(parser, read_string, read_string));
-    const cliff_settings = read_cliff_settings(parser, atLeastV2);
-    const territory_settings = atLeastV2 ? read_optional(parser, read_territory_settings) : null;
+    const cliff_settings = read_cliff_settings(parser, atLeastV20);
+    const territory_settings = atLeastV20 ? read_optional(parser, read_territory_settings) : null;
     let settings = {
         autoplace_controls: autoplace_controls,
         autoplace_settings: autoplace_settings,
@@ -227,9 +235,8 @@ function read_map_gen_settings(parser, atLeastV2) {
         property_expression_names: property_expression_names,
         cliff_settings: cliff_settings,
     };
-    if (atLeastV2) {
+    if (atLeastV20) {
         settings.no_enemies_mode = no_enemies_mode;
-        settings._territory_settings = "Maybe broken? Let me know on Github if you can explain what territory_settings is";
         if (territory_settings !== null)
             settings.territory_settings = territory_settings;
     } else {
@@ -283,22 +290,31 @@ function read_enemy_evolution(parser) {
     };
 }
 
-function read_enemy_expansion(parser) {
-    return {
+function read_enemy_expansion(parser, atLeastV21) {
+    const settings = {
         enabled: read_optional(parser, read_bool),
         max_expansion_distance: read_optional(parser, read_uint32),
-        friendly_base_influence_radius: read_optional(parser, read_uint32),
-        enemy_building_influence_radius: read_optional(parser, read_uint32),
-        building_coefficient: read_optional(parser, read_double),
-        other_base_coefficient: read_optional(parser, read_double),
-        neighbouring_chunk_coefficient: read_optional(parser, read_double),
-        neighbouring_base_chunk_coefficient: read_optional(parser, read_double),
-        max_colliding_tiles_coefficient: read_optional(parser, read_double),
-        settler_group_min_size: read_optional(parser, read_uint32),
-        settler_group_max_size: read_optional(parser, read_uint32),
-        min_expansion_cooldown: read_optional(parser, read_uint32),
-        max_expansion_cooldown: read_optional(parser, read_uint32),
     };
+
+    if (atLeastV21)
+        settings.min_expansion_distance = read_optional(parser, read_uint32);
+
+    settings.friendly_base_influence_radius = read_optional(parser, read_uint32);
+    settings.enemy_building_influence_radius = read_optional(parser, read_uint32);
+    settings.building_coefficient = read_optional(parser, read_double);
+    settings.other_base_coefficient = read_optional(parser, read_double);
+    settings.neighbouring_chunk_coefficient = read_optional(parser, read_double);
+    settings.neighbouring_base_chunk_coefficient = read_optional(parser, read_double);
+    settings.max_colliding_tiles_coefficient = read_optional(parser, read_double);
+    settings.settler_group_min_size = read_optional(parser, read_uint32);
+    settings.settler_group_max_size = read_optional(parser, read_uint32);
+
+    if (atLeastV21)
+        settings.evolution_group_size_factor = read_optional(parser, read_double);
+
+    settings.min_expansion_cooldown = read_optional(parser, read_uint32);
+    settings.max_expansion_cooldown = read_optional(parser, read_uint32);
+    return settings;
 }
 
 function read_unit_group(parser) {
@@ -357,8 +373,8 @@ function read_path_finder(parser) {
     };
 }
 
-function read_difficulty_settings(parser, atLeastV2) {
-    if (atLeastV2) {
+function read_difficulty_settings(parser, atLeastV20) {
+    if (atLeastV20) {
         return {
             technology_price_multiplier: read_double(parser),
             spoil_time_modifier: read_double(parser),
@@ -379,19 +395,22 @@ function read_asteroids_settings(parser) {
     }
 }
 
-function read_map_settings(parser, atLeastV2) {
+function read_map_settings(parser, atLeastV20, atLeastV21) {
     let settings = {
         pollution: read_pollution(parser),
-        steering: read_steering(parser),
-        enemy_evolution: read_enemy_evolution(parser),
-        enemy_expansion: read_enemy_expansion(parser),
-        unit_group: read_unit_group(parser),
-        path_finder: read_path_finder(parser),
-        max_failed_behavior_count: read_uint32(parser),
-        difficulty_settings: read_difficulty_settings(parser, atLeastV2)
     };
 
-    if (atLeastV2)
+    if (!atLeastV21)
+        settings.steering = read_steering(parser);
+
+    settings.enemy_evolution = read_enemy_evolution(parser);
+    settings.enemy_expansion = read_enemy_expansion(parser, atLeastV21);
+    settings.unit_group = read_unit_group(parser);
+    settings.path_finder = read_path_finder(parser);
+    settings.max_failed_behavior_count = read_uint32(parser);
+    settings.difficulty_settings = read_difficulty_settings(parser, atLeastV20);
+
+    if (atLeastV20)
         settings.asteroids = read_asteroids_settings(parser);
 
     return settings;
@@ -438,13 +457,14 @@ export async function parse(exchangeStr) {
 
     const parser = new Parser(buffer);
     const version = read_version(parser);
-    const atLeastV2 = version >= [2, 0, 0, 0];
+    const atLeastV20 = version_at_least(version, [2, 0, 0, 0]);
+    const atLeastV21 = version_at_least(version, [2, 1, 0, 0]);
 
     const data = {
         version: version,
         unknown: read_uint8(parser),
-        mapGenSettings: read_map_gen_settings(parser, atLeastV2),
-        mapSettings: read_map_settings(parser, atLeastV2),
+        mapGenSettings: read_map_gen_settings(parser, atLeastV20),
+        mapSettings: read_map_settings(parser, atLeastV20, atLeastV21),
         checksum: read_uint32(parser),
     };
 
