@@ -317,22 +317,27 @@ function read_enemy_expansion(parser, atLeastV21) {
     return settings;
 }
 
-function read_unit_group(parser) {
-    return {
+function read_unit_group(parser, atLeastV2114) {
+    const settings = {
         min_group_gathering_time: read_optional(parser, read_uint32),
         max_group_gathering_time: read_optional(parser, read_uint32),
         max_wait_time_for_late_members: read_optional(parser, read_uint32),
-        max_group_radius: read_optional(parser, read_double),
-        min_group_radius: read_optional(parser, read_double),
-        max_member_speedup_when_behind: read_optional(parser, read_double),
-        max_member_slowdown_when_ahead: read_optional(parser, read_double),
-        max_group_slowdown_factor: read_optional(parser, read_double),
-        max_group_member_fallback_factor: read_optional(parser, read_double),
-        member_disown_distance: read_optional(parser, read_double),
-        tick_tolerance_when_member_arrives: read_optional(parser, read_uint32),
-        max_gathering_unit_groups: read_optional(parser, read_uint32),
-        max_unit_group_size: read_optional(parser, read_uint32),
     };
+
+    if (atLeastV2114)
+        settings.unknown = read_optional(parser, read_uint32);
+
+    settings.max_group_radius = read_optional(parser, read_double);
+    settings.min_group_radius = read_optional(parser, read_double);
+    settings.max_member_speedup_when_behind = read_optional(parser, read_double);
+    settings.max_member_slowdown_when_ahead = read_optional(parser, read_double);
+    settings.max_group_slowdown_factor = read_optional(parser, read_double);
+    settings.max_group_member_fallback_factor = read_optional(parser, read_double);
+    settings.member_disown_distance = read_optional(parser, read_double);
+    settings.tick_tolerance_when_member_arrives = read_optional(parser, read_uint32);
+    settings.max_gathering_unit_groups = read_optional(parser, read_uint32);
+    settings.max_unit_group_size = read_optional(parser, read_uint32);
+    return settings;
 }
 
 function read_path_finder(parser) {
@@ -395,7 +400,7 @@ function read_asteroids_settings(parser) {
     }
 }
 
-function read_map_settings(parser, atLeastV20, atLeastV21) {
+function read_map_settings(parser, atLeastV20, atLeastV21, atLeastV2114) {
     let settings = {
         pollution: read_pollution(parser),
     };
@@ -405,7 +410,7 @@ function read_map_settings(parser, atLeastV20, atLeastV21) {
 
     settings.enemy_evolution = read_enemy_evolution(parser);
     settings.enemy_expansion = read_enemy_expansion(parser, atLeastV21);
-    settings.unit_group = read_unit_group(parser);
+    settings.unit_group = read_unit_group(parser, atLeastV2114);
     settings.path_finder = read_path_finder(parser);
     settings.max_failed_behavior_count = read_uint32(parser);
     settings.difficulty_settings = read_difficulty_settings(parser, atLeastV20);
@@ -459,12 +464,13 @@ export async function parse(exchangeStr) {
     const version = read_version(parser);
     const atLeastV20 = version_at_least(version, [2, 0, 0, 0]);
     const atLeastV21 = version_at_least(version, [2, 1, 0, 0]);
+    const atLeastV2114 = version_at_least(version, [2, 1, 14, 0]);
 
     const data = {
         version: version,
         unknown: read_uint8(parser),
         mapGenSettings: read_map_gen_settings(parser, atLeastV20),
-        mapSettings: read_map_settings(parser, atLeastV20, atLeastV21),
+        mapSettings: read_map_settings(parser, atLeastV20, atLeastV21, atLeastV2114),
         checksum: read_uint32(parser),
     };
 
