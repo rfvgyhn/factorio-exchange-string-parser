@@ -347,6 +347,10 @@ function read_enemy_expansion(parser, version) {
 
     settings.min_expansion_cooldown = read_optional(parser, read_uint32);
     settings.max_expansion_cooldown = read_optional(parser, read_uint32);
+
+    if (version.isGreaterThanOrEqual(2, 1, 13))
+        settings.build_base_unit_dispatch_cooldown = read_optional(parser, read_uint32);
+
     return settings;
 }
 
