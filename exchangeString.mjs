@@ -11,6 +11,45 @@ class Parser {
     }
 }
 
+class Version {
+    constructor(major = 0, minor = 0, patch = 0, build = 0) {
+        this.parts = Object.freeze([major, minor, patch, build]);
+    }
+
+    [Symbol.iterator]() {
+        return this.parts[Symbol.iterator]();
+    }
+
+    compare(...parts) {
+        for (let i = 0; i < this.parts.length; i++) {
+            if (this.parts[i] < parts[i]) return -1;
+            if (this.parts[i] > parts[i]) return 1;
+        }
+
+        return 0;
+    }
+
+    isLessThan(...parts) {
+        return this.compare(...parts) < 0;
+    }
+
+    isLessThanOrEqual(...parts) {
+        return this.compare(...parts) <= 0;
+    }
+
+    isGreaterThan(...parts) {
+        return this.compare(...parts) > 0;
+    }
+
+    isGreaterThanOrEqual(...parts) {
+        return this.compare(...parts) >= 0;
+    }
+
+    isEqualTo(...parts) {
+        return this.compare(...parts) === 0;
+    }
+}
+
 function read_bool(parser) {
     let value = read_uint8(parser) !== 0;
     return value;
@@ -111,16 +150,8 @@ function read_version(parser) {
     let major = read_uint16(parser);
     let minor = read_uint16(parser);
     let patch = read_uint16(parser);
-    let developer = read_uint16(parser);
-    return [major, minor, patch, developer];
-}
-
-function version_at_least(version, expected) {
-    for (let i = 0; i < version.length; i++) {
-        if (version[i] !== expected[i])
-            return version[i] > expected[i];
-    }
-    return true;
+    let build = read_uint16(parser);
+    return new Version(major, minor, patch, build);
 }
 
 function read_frequency_size_richness(parser) {
@@ -165,19 +196,19 @@ function read_bounding_box(parser) {
     };
 }
 
-function read_cliff_settings(parser, atLeastV20) {
+function read_cliff_settings(parser, version) {
     let settings = {
         name: read_string(parser)
     };
 
-    if (atLeastV20)
+    if (version.isGreaterThanOrEqual(2, 0))
         settings.control = read_string(parser);
 
     settings.cliff_elevation_0 = read_float(parser);
     settings.cliff_elevation_interval = read_float(parser);
     settings.richness = read_float(parser);
-    
-    if (atLeastV20)
+
+    if (version.isGreaterThanOrEqual(2, 0))
         settings.cliff_smoothing = read_float(parser)
 
     return settings;
@@ -204,7 +235,9 @@ function map_to_object(map) {
     return obj;
 }
 
-function read_map_gen_settings(parser, atLeastV20) {
+function read_map_gen_settings(parser, version) {
+    const atLeastV20 = version.isGreaterThanOrEqual(2, 0);
+
     const terrain_segmentation = atLeastV20 ? 0 : read_float(parser);
     const water = atLeastV20 ? 0 : read_float(parser);
     const autoplace_controls = map_to_object(read_dict(parser, read_string, read_frequency_size_richness));
@@ -219,7 +252,7 @@ function read_map_gen_settings(parser, atLeastV20) {
     const no_enemies_mode = atLeastV20 ? read_bool(parser) : false;
     const starting_points = read_array(parser, read_map_position);
     const property_expression_names = map_to_object(read_dict(parser, read_string, read_string));
-    const cliff_settings = read_cliff_settings(parser, atLeastV20);
+    const cliff_settings = read_cliff_settings(parser, version);
     const territory_settings = atLeastV20 ? read_optional(parser, read_territory_settings) : null;
     let settings = {
         autoplace_controls: autoplace_controls,
@@ -290,13 +323,13 @@ function read_enemy_evolution(parser) {
     };
 }
 
-function read_enemy_expansion(parser, atLeastV21) {
+function read_enemy_expansion(parser, version) {
     const settings = {
         enabled: read_optional(parser, read_bool),
         max_expansion_distance: read_optional(parser, read_uint32),
     };
 
-    if (atLeastV21)
+    if (version.isGreaterThanOrEqual(2, 1))
         settings.min_expansion_distance = read_optional(parser, read_uint32);
 
     settings.friendly_base_influence_radius = read_optional(parser, read_uint32);
@@ -309,7 +342,7 @@ function read_enemy_expansion(parser, atLeastV21) {
     settings.settler_group_min_size = read_optional(parser, read_uint32);
     settings.settler_group_max_size = read_optional(parser, read_uint32);
 
-    if (atLeastV21)
+    if (version.isGreaterThanOrEqual(2, 1))
         settings.evolution_group_size_factor = read_optional(parser, read_double);
 
     settings.min_expansion_cooldown = read_optional(parser, read_uint32);
@@ -373,8 +406,8 @@ function read_path_finder(parser) {
     };
 }
 
-function read_difficulty_settings(parser, atLeastV20) {
-    if (atLeastV20) {
+function read_difficulty_settings(parser, version) {
+    if (version.isGreaterThanOrEqual(2, 0)) {
         return {
             technology_price_multiplier: read_double(parser),
             spoil_time_modifier: read_double(parser),
@@ -395,22 +428,22 @@ function read_asteroids_settings(parser) {
     }
 }
 
-function read_map_settings(parser, atLeastV20, atLeastV21) {
+function read_map_settings(parser, version) {
     let settings = {
         pollution: read_pollution(parser),
     };
 
-    if (!atLeastV21)
+    if (version.isLessThan(2, 1))
         settings.steering = read_steering(parser);
 
     settings.enemy_evolution = read_enemy_evolution(parser);
-    settings.enemy_expansion = read_enemy_expansion(parser, atLeastV21);
+    settings.enemy_expansion = read_enemy_expansion(parser, version);
     settings.unit_group = read_unit_group(parser);
     settings.path_finder = read_path_finder(parser);
     settings.max_failed_behavior_count = read_uint32(parser);
-    settings.difficulty_settings = read_difficulty_settings(parser, atLeastV20);
+    settings.difficulty_settings = read_difficulty_settings(parser, version);
 
-    if (atLeastV20)
+    if (version.isGreaterThanOrEqual(2, 0))
         settings.asteroids = read_asteroids_settings(parser);
 
     return settings;
@@ -457,14 +490,12 @@ export async function parse(exchangeStr) {
 
     const parser = new Parser(buffer);
     const version = read_version(parser);
-    const atLeastV20 = version_at_least(version, [2, 0, 0, 0]);
-    const atLeastV21 = version_at_least(version, [2, 1, 0, 0]);
 
     const data = {
         version: version,
         unknown: read_uint8(parser),
-        mapGenSettings: read_map_gen_settings(parser, atLeastV20),
-        mapSettings: read_map_settings(parser, atLeastV20, atLeastV21),
+        mapGenSettings: read_map_gen_settings(parser, version),
+        mapSettings: read_map_settings(parser, version),
         checksum: read_uint32(parser),
     };
 
