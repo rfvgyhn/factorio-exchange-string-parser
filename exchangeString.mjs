@@ -243,6 +243,7 @@ function map_to_object(map) {
 
 function read_map_gen_settings(parser, version) {
     // https://lua-api.factorio.com/latest/types/MapGenSettings.html
+    // https://github.com/wube/factorio-data/blob/master/map-gen-settings.example.json
     const atLeastV20 = version.isGreaterThanOrEqual(2, 0);
 
     const terrain_segmentation = atLeastV20 ? 0 : read_float(parser);
@@ -450,6 +451,7 @@ function read_asteroids_settings(parser) {
 
 function read_map_settings(parser, version) {
     // https://lua-api.factorio.com/latest/prototypes/MapSettings.html
+    // https://github.com/wube/factorio-data/blob/master/map-settings.example.json
     let settings = {
         pollution: read_pollution(parser),
     };
