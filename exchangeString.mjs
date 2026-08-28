@@ -155,6 +155,7 @@ function read_version(parser) {
 }
 
 function read_frequency_size_richness(parser) {
+    // https://lua-api.factorio.com/latest/types/FrequencySizeRichness.html
     return {
         frequency: read_float(parser),
         size: read_float(parser),
@@ -163,6 +164,7 @@ function read_frequency_size_richness(parser) {
 }
 
 function read_autoplace_setting(parser) {
+    // https://lua-api.factorio.com/latest/types/AutoplaceSettings.html
     return {
         treat_missing_as_default: read_bool(parser),
         settings: map_to_object(read_dict(parser, read_string, read_frequency_size_richness)),
@@ -170,6 +172,7 @@ function read_autoplace_setting(parser) {
 }
 
 function read_map_position(parser) {
+    // https://lua-api.factorio.com/latest/types/MapPosition.html
     let x, y;
     let x_diff = read_int16(parser) / 256;
     if (x_diff === 0x7fff / 256) {
@@ -186,6 +189,7 @@ function read_map_position(parser) {
 }
 
 function read_bounding_box(parser) {
+    // https://lua-api.factorio.com/latest/types/BoundingBox.html
     return {
         left_top: read_map_position(parser),
         right_bottom: read_map_position(parser),
@@ -197,6 +201,7 @@ function read_bounding_box(parser) {
 }
 
 function read_cliff_settings(parser, version) {
+    // https://lua-api.factorio.com/latest/types/CliffPlacementSettings.html
     let settings = {
         name: read_string(parser)
     };
@@ -215,6 +220,7 @@ function read_cliff_settings(parser, version) {
 }
 
 function read_territory_settings(parser) {
+    // https://lua-api.factorio.com/latest/types/TerritorySettings.html
     const units = read_array(parser, read_string);
     const territory_index_expression = read_string(parser);
     const territory_variation_expression = read_string(parser);
@@ -236,6 +242,8 @@ function map_to_object(map) {
 }
 
 function read_map_gen_settings(parser, version) {
+    // https://lua-api.factorio.com/latest/types/MapGenSettings.html
+    // https://github.com/wube/factorio-data/blob/master/map-gen-settings.example.json
     const atLeastV20 = version.isGreaterThanOrEqual(2, 0);
 
     const terrain_segmentation = atLeastV20 ? 0 : read_float(parser);
@@ -281,6 +289,7 @@ function read_map_gen_settings(parser, version) {
 }
 
 function read_pollution(parser) {
+    // https://lua-api.factorio.com/latest/types/PollutionSettings.html
     return {
         enabled: read_optional(parser, read_bool),
         diffusion_ratio: read_optional(parser, read_double),
@@ -298,6 +307,7 @@ function read_pollution(parser) {
 }
 
 function read_real_steering(parser) {
+    // https://lua-api.factorio.com/2.0.77/types/StateSteeringSettings.html
     return {
         radius: read_optional(parser, read_double),
         separation_factor: read_optional(parser, read_double),
@@ -308,6 +318,7 @@ function read_real_steering(parser) {
 }
 
 function read_steering(parser) {
+    // https://lua-api.factorio.com/2.0.77/prototypes/MapSettings.html#steering
     return {
         default: read_real_steering(parser),
         moving: read_real_steering(parser),
@@ -315,6 +326,7 @@ function read_steering(parser) {
 }
 
 function read_enemy_evolution(parser) {
+    // https://lua-api.factorio.com/latest/types/EnemyEvolutionSettings.html
     return {
         enabled: read_optional(parser, read_bool),
         time_factor: read_optional(parser, read_double),
@@ -324,6 +336,7 @@ function read_enemy_evolution(parser) {
 }
 
 function read_enemy_expansion(parser, version) {
+    // https://lua-api.factorio.com/latest/types/EnemyExpansionSettings.html
     const settings = {
         enabled: read_optional(parser, read_bool),
         max_expansion_distance: read_optional(parser, read_uint32),
@@ -355,6 +368,7 @@ function read_enemy_expansion(parser, version) {
 }
 
 function read_unit_group(parser) {
+    // https://lua-api.factorio.com/latest/types/UnitGroupSettings.html
     return {
         min_group_gathering_time: read_optional(parser, read_uint32),
         max_group_gathering_time: read_optional(parser, read_uint32),
@@ -373,6 +387,7 @@ function read_unit_group(parser) {
 }
 
 function read_path_finder(parser) {
+    // https://lua-api.factorio.com/latest/types/PathFinderSettings.html
     return {
         fwd2bwd_ratio: read_optional(parser, read_int32),
         goal_pressure_ratio: read_optional(parser, read_double),
@@ -411,6 +426,7 @@ function read_path_finder(parser) {
 }
 
 function read_difficulty_settings(parser, version) {
+    // https://lua-api.factorio.com/latest/types/DifficultySettings.html
     if (version.isGreaterThanOrEqual(2, 0)) {
         return {
             technology_price_multiplier: read_double(parser),
@@ -426,6 +442,7 @@ function read_difficulty_settings(parser, version) {
 }
 
 function read_asteroids_settings(parser) {
+    // https://lua-api.factorio.com/latest/types/AsteroidSettings.html
     return {
         spawning_rate: read_optional(parser, read_double),
         max_ray_portals_expanded_per_tick: read_optional(parser, read_uint32)
@@ -433,6 +450,8 @@ function read_asteroids_settings(parser) {
 }
 
 function read_map_settings(parser, version) {
+    // https://lua-api.factorio.com/latest/prototypes/MapSettings.html
+    // https://github.com/wube/factorio-data/blob/master/map-settings.example.json
     let settings = {
         pollution: read_pollution(parser),
     };
